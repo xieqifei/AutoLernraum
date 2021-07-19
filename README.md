@@ -9,7 +9,7 @@
 ## 2.基于Requests库的预定程序
 
 1. 安装Python环境
-2. 点击网页上面哪个绿色的`Code`按钮，选在下载为zip，将整个程序文件从github下载到本地并解压。
+2. 点击网页上面那个绿色的`Code`按钮，选择下载为zip，将整个程序文件从github下载到本地并解压。
 3. 使用任意编辑器打开`test_requests.py`，修改变量buchung
 
 > buchung = {'ort': '', 'kursnr': '08411027','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076 Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
