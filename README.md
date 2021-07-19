@@ -9,7 +9,7 @@
 ## 2.基于Requests库的预定程序
 
 1. 安装Python环境
-2. 将整个python文件夹从github下载到本地并解压。
+2. 点击网页上面哪个绿色的`Code`按钮，选在下载为zip，将整个程序文件从github下载到本地并解压。
 3. 使用任意编辑器打开`test_requests.py`，修改变量buchung
 
 > buchung = {'ort': '', 'kursnr': '08411027','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076 Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
@@ -104,4 +104,4 @@ crontab -e
 
 ## 6.结尾
 
-如果你对程序的运行原理感兴趣，那么你可以看看`/myclass/lernraum.py`文件，所有的抢座程序都在这个文件中，因为文件经过了多次修改，所以看起来可能有点杂乱无章。最后，为了感谢你仔细的阅读了全篇内容，我在这里将我自己开发的自习室预定系统，分享出来。你甚至不需要运行上面的程序，简单的在网页里注册，勾选想抢的位置，我运行在服务器上的程序，就能帮你抢到座位啦。预定系统的网页：https://buchung.sci.ci
+如果你对程序的运行原理感兴趣，那么你可以看看`/myclass/lernraum.py`文件，所有的抢座程序都在这个文件中，因为文件经过了多次修改，所以看起来可能有点杂乱无章。最后，感谢你仔细的阅读了全篇内容，下面是我基于云函数开发的自习室预定系统，也许对你有帮助。预定系统的网页：https://buchung.sci.ci
