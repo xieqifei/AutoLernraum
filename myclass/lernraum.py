@@ -348,10 +348,13 @@ class LernraumInfo():
         if(code_id_dic):
             fid = self.__get_fid(code_id_dic)
             if(fid):
+                #延时确保学校服务器安全。
+                time.sleep(3)
                 form_html = self.__get_form_list(fid)
                 if(form_html):
-                    time.sleep(7)
+                    time.sleep(9)
                     formAndHtml = self.__get_formdata(fid, buchung['info'])
+                    time.sleep(3)
                     if(formAndHtml):
                         return self.__confirm_buchung(fid, buchung['info'], formAndHtml['formdata'],formAndHtml['html'])
                     else:
