@@ -1,13 +1,4 @@
-# -*- encoding: utf-8 -*-
-'''
-@file_name    :lernraum.py
-@description  :自习室接口文件，包含课程信息爬虫，和自动预定的程序。
-@time         :2021/07/19 23:27:47
-@author       :Qifei
-@version      :1.0
-'''
-
-
+# -*- coding: UTF-8 -*-
 import requests
 from bs4 import BeautifulSoup
 from .db import BuchenListApi
@@ -40,6 +31,15 @@ class LernraumInfo():
     def __log(self,msg):
         print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+': '+msg)
 
+    #判断是否为预定成功的返回页面
+    def __is_buchung_successful(self,page_html):
+        if "kostenfrei" in str(page_html):
+            self.__log('预定成功。十分钟内你将收到学校下发的确认邮件。')
+            return True
+        else:
+            self.__log('很遗憾，预定失败~')
+            return False
+            
     # 爬取所有的自习室信息
     def __get_raum_list(self):
         rep = requests.get(self.url1)
@@ -132,7 +132,7 @@ class LernraumInfo():
 
     # 获取bscode和kursid
     def __get_kurs_code_and_id(self, kursnr):
-        rep = requests.get(self.url1)
+        rep = requests.get(self.url1,timeout=60)
         if(rep.status_code == 200):
             try:
                 soup = BeautifulSoup(rep.text, "html.parser")
@@ -143,7 +143,7 @@ class LernraumInfo():
                     kursid = kurs.select("td.bs_sbuch > input")[0].get("name")
                     return {"code": code, "kursid": kursid}
                 else:
-                    print(kursnr+"预定名额已满")
+                    self.__log(kursnr+"预定名额已满")
                     return False
             except Exception as e:
                 # traceback.print_exc()
@@ -177,7 +177,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
         try:
             soup = BeautifulSoup(resp.text, 'html.parser')
             fid = soup.select_one(
@@ -221,7 +221,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
         if(resp.status_code == 200):
             # self.__log("表单页面代码"+resp.text)
             return resp.text
@@ -274,7 +274,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
         # print(resp.text)
         if(resp.status_code == 200):
             try:
@@ -324,12 +324,9 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data)
-        # self.__log("确认后返回页面"+resp.text)
-        if(resp.status_code == 302):
-            return True
-        else:
-            return False
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
+        self.__log("确认后返回页面"+resp.text)
+        return self.__is_buchung_successful(resp.text)
 
     # requests预定一个位置
     def buchen_platz_via_requests(self, buchung):
@@ -347,14 +344,13 @@ class LernraumInfo():
                 time.sleep(2)
         if(code_id_dic):
             fid = self.__get_fid(code_id_dic)
+            time.sleep(5)
             if(fid):
-                #延时确保学校服务器安全。
-                time.sleep(3)
                 form_html = self.__get_form_list(fid)
                 if(form_html):
-                    time.sleep(9)
+                    time.sleep(10)
                     formAndHtml = self.__get_formdata(fid, buchung['info'])
-                    time.sleep(3)
+                    time.sleep(9)
                     if(formAndHtml):
                         return self.__confirm_buchung(fid, buchung['info'], formAndHtml['formdata'],formAndHtml['html'])
                     else:
@@ -405,8 +401,9 @@ class LernraumInfo():
             status.select_by_value(urinfo['status'])
             # js注入填写表单
             driver.execute_script(fill_form_script)
-            time.sleep(7)
-            driver.execute_script(matnr_fill_script)            
+            time.sleep(6)
+            driver.execute_script(matnr_fill_script)
+            
             confirm_page_finished = WebDriverWait(driver, 9).until(           
         EC.text_to_be_present_in_element((By.CLASS_NAME,'bs_text_red'),'überprüfen'))
             try:
@@ -429,7 +426,7 @@ class LernraumInfo():
         option.add_argument('--headless')
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
-        driver = webdriver.Chrome(chrome_options=option,executable_path=ChromeDriverManager().install())
+        driver = webdriver.Chrome(chrome_options=option)
         i = 0
         while i<90:
             driver.get(self.url1)
@@ -465,12 +462,13 @@ class LernraumInfo():
             driver.quit()
             return False
 
+    #随机预定位置
     def random_buchen(self, buchung):
         option = webdriver.ChromeOptions()
         option.add_argument('--headless')
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
-        driver = webdriver.Chrome(chrome_options=option,executable_path=ChromeDriverManager().install())
+        driver = webdriver.Chrome(chrome_options=option)
         i = 0
         while True:
             driver.get(self.url1)
