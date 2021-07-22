@@ -39,7 +39,6 @@ class LernraumInfo():
         else:
             self.__log('很遗憾，预定失败~')
             return False
-            
     # 爬取所有的自习室信息
     def __get_raum_list(self):
         rep = requests.get(self.url1)
@@ -177,7 +176,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
         try:
             soup = BeautifulSoup(resp.text, 'html.parser')
             fid = soup.select_one(
@@ -221,7 +220,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
         if(resp.status_code == 200):
             # self.__log("表单页面代码"+resp.text)
             return resp.text
@@ -274,7 +273,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
         # print(resp.text)
         if(resp.status_code == 200):
             try:
@@ -324,7 +323,7 @@ class LernraumInfo():
             'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
-        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=60)
+        resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
         self.__log("确认后返回页面"+resp.text)
         return self.__is_buchung_successful(resp.text)
 
@@ -344,13 +343,13 @@ class LernraumInfo():
                 time.sleep(2)
         if(code_id_dic):
             fid = self.__get_fid(code_id_dic)
-            time.sleep(5)
+            time.sleep(6)
             if(fid):
                 form_html = self.__get_form_list(fid)
                 if(form_html):
                     time.sleep(10)
                     formAndHtml = self.__get_formdata(fid, buchung['info'])
-                    time.sleep(9)
+                    time.sleep(8)
                     if(formAndHtml):
                         return self.__confirm_buchung(fid, buchung['info'], formAndHtml['formdata'],formAndHtml['html'])
                     else:
@@ -365,7 +364,6 @@ class LernraumInfo():
         else:
             self.__log("预定位置失败，未找到可以预定的位置")
             return False
-
     # selenium实现预定
 
     # selenium点击buchen按钮
@@ -404,7 +402,7 @@ class LernraumInfo():
             time.sleep(6)
             driver.execute_script(matnr_fill_script)
             
-            confirm_page_finished = WebDriverWait(driver, 9).until(           
+            confirm_page_finished = WebDriverWait(driver, 30).until(           
         EC.text_to_be_present_in_element((By.CLASS_NAME,'bs_text_red'),'überprüfen'))
             try:
                 email2 = driver.find_element_by_xpath(
@@ -415,7 +413,8 @@ class LernraumInfo():
             confirm_submit_btn = driver.find_element_by_xpath(
                 '//input[@type="submit"]')
             confirm_submit_btn.click()
-            return True
+            print(driver.page_source)
+            return self.__is_buchung_successful(driver.page_source)
         except Exception as e:
             print(driver.page_source)
             traceback.print_exc()
@@ -427,6 +426,8 @@ class LernraumInfo():
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
         driver = webdriver.Chrome(chrome_options=option)
+        driver.set_page_load_timeout(300)
+        driver.set_script_timeout(90)
         i = 0
         while i<90:
             driver.get(self.url1)
@@ -450,7 +451,7 @@ class LernraumInfo():
         if(self.__click_buchen_btn(buchung, driver)):
             if(self.__fill_form(buchung['info'], driver)):
                 self.__log(buchung['username']+'预定成功')
-                print(driver.page_source)
+                
                 driver.quit()
                 return True
             else:
@@ -469,6 +470,8 @@ class LernraumInfo():
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
         driver = webdriver.Chrome(chrome_options=option)
+        driver.set_page_load_timeout(300)
+        driver.set_script_timeout(90)
         i = 0
         while True:
             driver.get(self.url1)
