@@ -12,6 +12,11 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
+import threading
+
+
+raums = []
+threadLock = threading.Lock()
 
 class LernraumInfo():
     def __init__(self):
@@ -38,6 +43,14 @@ class LernraumInfo():
             return True
         else:
             self.__log('很遗憾，预定失败~')
+            return False
+
+    #判断是否位置已被分发完
+    def __is_ausgebucht(self,page_html):
+        if("ausgebucht" in str(page_html)):
+            self.__log('预定失败，位置被抢完了。')
+            return True
+        else:
             return False
     # 爬取所有的自习室信息
     def __get_raum_list(self):
@@ -77,57 +90,72 @@ class LernraumInfo():
             return False
         return True
 
+    def __get_a_raum(self,i):
+        global raums
+        global threadLock
+        raum = raums[i]
+        data = {
+            'BS_Code': raum['code'],
+            raum['kursid']: raum['kursvalue']
+        }
+        headers = {
+            'Host': 'buchung.hsz.rwth-aachen.de',
+            'Origin': 'https://buchung.hsz.rwth-aachen.de',
+            'Referer': 'https://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/_Lernraumbuchung.html',
+            'Content-Length': self.__get_content_length(data),
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
+        resp = requests.request(
+            "POST", self.url2, headers=headers, data=data)
+        if(resp.status_code == 200):
+            try:
+                soup = BeautifulSoup(resp.text, 'html.parser')
+                zeit_list = soup.select_one(
+                    "#bs_form_main > div > div.bs_etvg").contents
+                termins = []
+                for zeit in zeit_list:
+                    if(hasattr(zeit, 'select')):
+                        week = zeit.select_one("div.bs_tag.alr").text
+                        tag = zeit.select_one(
+                            "div.bs_text_bold.pointer").text
+                        time = zeit.select_one("div.bs_time").text
+                        if(zeit.select_one("input")):
+                            if(str(zeit.select_one("input").get("value")) == "Warteliste"):
+                                status = 2
+                            else:
+                                status = 1
+                        else:
+                            status = 0
+                        if(status == 0):
+                            termins.append(
+                                {"week": week, 'tag': tag, 'time': time, 'status': status, 'kursnr': raum['kursnr'], 'ort': raum['ort']})
+                threadLock.acquire()
+                raums[i]['termins'] = termins
+                threadLock.release()
+            except:
+                print("爬取预定时间报错")
+                return False
+        else:
+            print("请求预定时间链接失败")
+            return False
+
     # 爬取自习室预定时间
     def get_raums(self):
+        global raums
+        raums = self.raums
+        threads = []
         if(self.__get_raum_list()):
             for i in range(len(self.raums)):
-                raum = self.raums[i]
-                data = {
-                    'BS_Code': raum['code'],
-                    raum['kursid']: raum['kursvalue']
-                }
-                headers = {
-                    'Host': 'buchung.hsz.rwth-aachen.de',
-                    'Origin': 'https://buchung.hsz.rwth-aachen.de',
-                    'Referer': 'https://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/_Lernraumbuchung.html',
-                    'Content-Length': self.__get_content_length(data),
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-                resp = requests.request(
-                    "POST", self.url2, headers=headers, data=data)
-                if(resp.status_code == 200):
-                    try:
-                        soup = BeautifulSoup(resp.text, 'html.parser')
-                        zeit_list = soup.select_one(
-                            "#bs_form_main > div > div.bs_etvg").contents
-                        termins = []
-                        for zeit in zeit_list:
-                            if(hasattr(zeit, 'select')):
-                                week = zeit.select_one("div.bs_tag.alr").text
-                                tag = zeit.select_one(
-                                    "div.bs_text_bold.pointer").text
-                                time = zeit.select_one("div.bs_time").text
-                                if(zeit.select_one("input")):
-                                    if(str(zeit.select_one("input").get("value")) == "Warteliste"):
-                                        status = 2
-                                    else:
-                                        status = 1
-                                else:
-                                    status = 0
-                                if(status == 0):
-                                    termins.append(
-                                        {"week": week, 'tag': tag, 'time': time, 'status': status, 'kursnr': raum['kursnr'], 'ort': raum['ort']})
-                        self.raums[i]['termins'] = termins
-                    except:
-                        print("爬取预定时间报错")
-                        return False
-                else:
-                    print("请求预定时间链接失败")
-                    return False
+                t=threading.Thread(target=self.__get_a_raum,args=(i,))
+                threads.append(t)
+                t.start()
+                time.sleep(0.1)
+            for t in threads:
+                t.join()
         else:
             print("没有获取到自习室信息")
             return False
-        return self.raums
+        return raums
 
     # 获取bscode和kursid
     def __get_kurs_code_and_id(self, kursnr):
@@ -137,15 +165,14 @@ class LernraumInfo():
                 soup = BeautifulSoup(rep.text, "html.parser")
                 kurs = soup.find(name="td", attrs={
                                  'class': 'bs_sknr'}, text=kursnr).parent
-                if(kurs.select("td.bs_sbuch > input")[0].get("value") == 'buchen'):
+                if(kurs.select("td.bs_sbuch > input")[0].get("value")):
                     code = soup.find(attrs={"name": "BS_Code"}).get("value")
                     kursid = kurs.select("td.bs_sbuch > input")[0].get("name")
                     return {"code": code, "kursid": kursid}
                 else:
-                    self.__log(kursnr+"预定名额已满")
                     return False
             except Exception as e:
-                # traceback.print_exc()
+                traceback.print_exc()
                 return False
 
     # 获取fid
@@ -177,17 +204,19 @@ class LernraumInfo():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
         resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
+        soup = BeautifulSoup(resp.text, 'html.parser')
         try:
-            soup = BeautifulSoup(resp.text, 'html.parser')
+            if(soup.select_one('#bs_form_main input[value=buchen]')):
+                pass
+            else:
+                return False
+            self.__log('found buchen btn')
             fid = soup.select_one(
                 "body > form > input[type=hidden]").get("value")
-            # print(resp.text)
-            # print('get fid:'+fid)
             self.__log("get fid:"+fid)
             return fid
         except Exception as e:
-            print(resp.text)
-            traceback.print_exc()
+            self.__is_ausgebucht(resp.text)
             return False
 
     # 获取表单
@@ -225,7 +254,6 @@ class LernraumInfo():
             # self.__log("表单页面代码"+resp.text)
             return resp.text
         return False
-
     # 提交预定，获取formdata
 
     def __get_formdata(self, fid, info):
@@ -233,7 +261,6 @@ class LernraumInfo():
         morgen = datetime.date.today()+datetime.timedelta(days=1)
         termin = morgen.strftime("%Y-%m-%d")
         #填写表单
-
         data = {
             'fid': fid,
             'Termin': termin,
@@ -283,7 +310,7 @@ class LernraumInfo():
                 # self.__log('返回的确认提交页面'+resp.text)
                 return {'formdata':formdata,'html':resp.text}
             except Exception as e:
-                traceback.print_exc()
+                self.__is_ausgebucht(resp.text)
                 return False
 
     # 确定预定信息
@@ -324,7 +351,8 @@ class LernraumInfo():
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
         resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
-        self.__log("确认后返回页面"+resp.text)
+        # self.__log("确认后返回页面"+resp.text)
+        self.__is_ausgebucht(resp.text)
         return self.__is_buchung_successful(resp.text)
 
     # requests预定一个位置
@@ -333,47 +361,41 @@ class LernraumInfo():
             if(value == ""):
                 self.__log("用户'"+buchung['username']+"'的信息不完整")
                 return False
-        i = 0
-        while i<90:
-            code_id_dic = self.__get_kurs_code_and_id(buchung['kursnr'])
-            if(code_id_dic):
-                break
-            else:
-                self.__log('refresh page, try to find a platz')
-                time.sleep(2)
+        code_id_dic = self.__get_kurs_code_and_id(buchung['kursnr'])
         if(code_id_dic):
-            fid = self.__get_fid(code_id_dic)
-            time.sleep(6)
-            if(fid):
-                form_html = self.__get_form_list(fid)
-                if(form_html):
-                    time.sleep(10)
-                    formAndHtml = self.__get_formdata(fid, buchung['info'])
-                    time.sleep(8)
-                    if(formAndHtml):
-                        return self.__confirm_buchung(fid, buchung['info'], formAndHtml['formdata'],formAndHtml['html'])
-                    else:
-                        self.__log('预定位置失败，未获取到formdata')
-                        return False
+            i=0
+            while i<90:
+                fid=self.__get_fid(code_id_dic)
+                if(fid):
+                    break
                 else:
-                    self.__log('预定失败')
+                    self.__log('refresh page')
+                    time.sleep(2)
+        else:
+            self.__log('获取预定主页信息失败')
+            return False
+        if(fid):
+            form_html = self.__get_form_list(fid)
+            if(form_html):
+                time.sleep(7)
+                formAndHtml = self.__get_formdata(fid, buchung['info'])
+                # time.sleep(4)
+                if(formAndHtml):
+                    return self.__confirm_buchung(fid, buchung['info'], formAndHtml['formdata'],formAndHtml['html'])
+                else:
+                    self.__log('未获取到再次确认提交页面')
                     return False
             else:
-                self.__log('预定位置失败，未获取到fid')
+                self.__log('未获取到信息表单页面')
                 return False
         else:
-            self.__log("预定位置失败，未找到可以预定的位置")
+            self.__log('刷新超时，在3分钟之内没有找到可以预定的座位。可尝试再次运行程序')
             return False
-    # selenium实现预定
+       
 
     # selenium点击buchen按钮
     def __click_buchen_btn(self, buchung, driver):
         try:
-            first_buchen_btn = driver.find_element_by_xpath(
-                '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]')
-            # # buchen_click = driver.find_element_by_xpath(
-            # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
-            first_buchen_btn.click()
             second_buchen_btn = driver.find_element_by_xpath(
                 '//input[@value="buchen"]')
             second_buchen_btn.click()
@@ -401,7 +423,6 @@ class LernraumInfo():
             driver.execute_script(fill_form_script)
             time.sleep(6)
             driver.execute_script(matnr_fill_script)
-            
             confirm_page_finished = WebDriverWait(driver, 30).until(           
         EC.text_to_be_present_in_element((By.CLASS_NAME,'bs_text_red'),'überprüfen'))
             try:
@@ -413,8 +434,7 @@ class LernraumInfo():
             confirm_submit_btn = driver.find_element_by_xpath(
                 '//input[@type="submit"]')
             confirm_submit_btn.click()
-            print(driver.page_source)
-            return self.__is_buchung_successful(driver.page_source)
+            return True
         except Exception as e:
             print(driver.page_source)
             traceback.print_exc()
@@ -429,88 +449,38 @@ class LernraumInfo():
         driver.set_page_load_timeout(300)
         driver.set_script_timeout(90)
         i = 0
+        clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
         while i<90:
             driver.get(self.url1)
             i=i+1
             self.__log('refresh page')
+            driver.execute_script(clear_black_script)
+            first_buchen_btn = driver.find_element_by_xpath(
+                '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]')
+            # # buchen_click = driver.find_element_by_xpath(
+            # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
+            first_buchen_btn.click()
             try:
-                first_buchen_btn = driver.find_element_by_xpath(
-                '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]/input[@class="bs_btn_buchen"]')
-                # first_buchen_btn = driver.find_element_by_xpath(
-                # '//td[contains(text(), "08511001")]/following-sibling::td[@class="bs_sbuch"]/input[@class="bs_btn_buchen"]')
+                second_buchen_btn = driver.find_element_by_xpath(
+                '//input[@value="buchen"]')
                 break
             except NoSuchElementException as e:
-                time.sleep(1)
-        clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
-        try:
-            driver.execute_script(clear_black_script)
-        except Exception as e:
-            self.__log('js1代码执行失败')
-            driver.quit()
-            return False
+                time.sleep(0.5)
         if(self.__click_buchen_btn(buchung, driver)):
             if(self.__fill_form(buchung['info'], driver)):
-                self.__log(buchung['username']+'预定成功')
-                
-                driver.quit()
-                return True
+                if(self.__is_buchung_successful(driver.page_source)):
+                    self.__log(buchung['username']+'预定成功')
+                    return True
+                else:
+                    self.__log(buchung['username']+'预定失败')
+                    print(driver.page_source)
+                    driver.quit()
+                    return False
             else:
                 self.__log('表单填写失败')
                 driver.quit()
                 return False
         else:
             self.__log('没有找到buchen按钮，可能已没有位置')
-            driver.quit()
-            return False
-
-    #随机预定位置
-    def random_buchen(self, buchung):
-        option = webdriver.ChromeOptions()
-        option.add_argument('--headless')
-        prefs = {"profile.managed_default_content_settings.images": 2}
-        option.add_experimental_option("prefs", prefs)
-        driver = webdriver.Chrome(chrome_options=option)
-        driver.set_page_load_timeout(300)
-        driver.set_script_timeout(90)
-        i = 0
-        while True:
-            driver.get(self.url1)
-            i=i+1
-            # self.__log('refresh page')
-            try:
-                first_buchen_btn = driver.find_element_by_css_selector('td.bs_sbuch > input.bs_btn_buchen')
-                # first_buchen_btn = driver.find_element_by_xpath(
-                # '//td[contains(text(), "08511001")]/following-sibling::td[@class="bs_sbuch"]/input[@class="bs_btn_buchen"]')
-                break
-            except NoSuchElementException as e:
-                time.sleep(3)
-        clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
-        try:
-            driver.execute_script(clear_black_script)
-        except Exception as e:
-            self.__log('js1代码执行失败')
-            driver.quit()
-            return False
-        try:
-            first_buchen_btn = driver.find_element_by_css_selector('td.bs_sbuch > input.bs_btn_buchen')
-            # # buchen_click = driver.find_element_by_xpath(
-            # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
-            first_buchen_btn.click()
-            second_buchen_btn = driver.find_element_by_xpath(
-                '//input[@value="buchen"]')
-            second_buchen_btn.click()
-            self.__log('点击了预定按钮')
-        except Exception as e:
-            print(driver.page_source)
-            traceback.print_exc()
-            driver.quit()
-            return False
-        if(self.__fill_form(buchung['info'], driver)):
-            self.__log(buchung['username']+'预定成功')
-            print(driver.page_source)
-            driver.quit()
-            return True
-        else:
-            self.__log('表单填写失败')
             driver.quit()
             return False
