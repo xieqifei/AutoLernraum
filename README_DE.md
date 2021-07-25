@@ -1,0 +1,41 @@
+# AutoLernraum
+
+Das Programm wird zur Buchung eines Lernraums an RWTH eingesetzt. 
+
+## Anleitung zum Gebrauch
+
+1. Installieren Python 3.x
+2. Installieren Chrome Browser von aketueller Version
+3. Herunterladen das Programm aus Github in Ihren Computer. Und dekomprimieren es
+4. Edieren die Datei `test_selenium.py`, und verändern die folgenden Info.
+
+```
+buchung = {'ort': 'Semi 90', 'kursnr': '08411027','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076 Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
+
+
+kursnr:Lernraum Nummer, welches Sie buchen möchten. Beispiel: 08411027 für Semi90.  Die Nummer finden Sie einfache in folgender Site. https://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/_Lernraumbuchung.html
+
+email:email, in welche wird die Beschäftigung abgeschikt.
+
+sex: M für mannlich  W für Weiblich
+
+vorname:Vorname
+
+name:Name
+
+strasse:Strasse und Nummer
+
+ort:PLZ und Stadt. Beispiel:52076 Aachen
+
+matnr:sechsstellige matikelnummer
+
+telefon:Telefon Nummer
+
+Status, Ort von Lernraum und username bleiben Sie bitte wie vor. 
+```
+
+5. Speichern die Veränderung und führen `test_selenium.py` aus. Das Programm wird alle zwei Sekunden in 2 Minuten automatisch dauernd wiederholen, um einen zu buchenden Platz zu suchen.  Wenn gesucht, wird automatische Buchung durchgeführt. Oder nach 2 Minuten stoppt das Programm. Zum Beispiel, ich will Bibliothek 1 um 8 Uhr buchen, dann soll ich um 7:59 das Programm ausführen.
+
+## Zum Schluss
+
+Wenn Sie an dem Programm interessieren, können Sie die Datei `/myclass/lernraum.py` lesen, wo  die kritische Code steht. Und andere Informationen schreibe ich schon README von chinesischer Version. 

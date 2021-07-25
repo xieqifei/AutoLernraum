@@ -1,5 +1,7 @@
 # RWTH自习室自动化程序2
 
+中文|Deutsch(Here finden Sie Readme auf Deutsch)
+
 ## 1.开篇
 
 抢座程序分为两种，基于selenium的浏览器自动化程序，和基于requests库的http模拟请求程序。
