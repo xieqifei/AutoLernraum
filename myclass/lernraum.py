@@ -445,7 +445,7 @@ class LernraumInfo():
         option.add_argument('--headless')
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
-        driver = webdriver.Chrome(chrome_options=option)
+        driver = webdriver.Chrome(chrome_options=option,executable_path=ChromeDriverManager().install())
         driver.set_page_load_timeout(300)
         driver.set_script_timeout(90)
         i = 0
