@@ -24,7 +24,7 @@ class LernraumInfo():
         self.url2 = "https://buchung.hsz.rwth-aachen.de/cgi/anmeldung.fcgi"
         self.raums = []
         self.url_fh ="https://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/_Lernplatzbuchung_FHB.html"
-
+        self.buchung={}
     # 计算content_length
     def __get_content_length(self, data):
         length = len(data.keys()) * 2 - 1
@@ -34,21 +34,50 @@ class LernraumInfo():
 
     #打印日志信息
     def __log(self,msg):
-        print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+': '+msg)
+        if('username' in self.buchung):
+            print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+', user '+self.buchung['username']+'`s log:'+msg)
+        else:
+            print(time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))+': '+msg)
 
+    #验证预定时间和当前时间是否接近
+    def __is_time_close(self,timestr):
+        try:
+            buchungTimeHour = int(timestr.split('-')[0].split('.')[0])
+            buchungTimeMinute = int(timestr.split('-')[0].split('.')[1])
+            diffirenzBuchtimeToNull = buchungTimeHour*3600+buchungTimeMinute*60
+            utcTime = datetime.datetime.now(datetime.timezone.utc)
+            berlinTime = utcTime + datetime.timedelta(hours=2)
+            berlinTimeHour = berlinTime.hour
+            berlinTimeMinute = berlinTime.minute
+            berlinTimeSecond = berlinTime.second
+            diffirenzBerlintimeToNull = berlinTimeHour*3600+berlinTimeMinute*60+berlinTimeSecond
+            diffirenz =diffirenzBerlintimeToNull-diffirenzBuchtimeToNull 
+            if(diffirenz>=0 and diffirenz<20):
+                self.__log('booking start')
+                return True
+            elif(diffirenz < 0):
+                self.__log('countdown to booking start: '+str(-diffirenz)+' Sceconds')
+                return False
+            else:
+                self.__log('ur booking out of time, please check ur booking time '+timestr)
+                return False
+        except Exception as e:
+            traceback.print_exc()
+            self.__log('Error: format of time in "buchung" Variable is error, right format：8.30 - 16.30')
+        
     #判断是否为预定成功的返回页面
     def __is_buchung_successful(self,page_html):
         if "kostenfrei" in str(page_html):
-            self.__log('预定成功。十分钟内你将收到学校下发的确认邮件。')
+            self.__log('booking success. you will get a email from Uni in 10 minutes')
             return True
         else:
-            self.__log('很遗憾，预定失败~')
+            self.__log('Schade, booking failed.')
             return False
 
     #判断是否位置已被分发完
     def __is_ausgebucht(self,page_html):
         if("ausgebucht" in str(page_html)):
-            self.__log('预定失败，位置被抢完了。')
+            self.__log('booking failed, ausgebucht.')
             return True
         else:
             return False
@@ -379,7 +408,6 @@ class LernraumInfo():
             if(form_html):
                 time.sleep(7)
                 formAndHtml = self.__get_formdata(fid, buchung['info'])
-                # time.sleep(4)
                 if(formAndHtml):
                     return self.__confirm_buchung(fid, buchung['info'], formAndHtml['formdata'],formAndHtml['html'])
                 else:
@@ -392,14 +420,14 @@ class LernraumInfo():
             self.__log('刷新超时，在3分钟之内没有找到可以预定的座位。可尝试再次运行程序')
             return False
        
-
+    #selenium实现代码
     # selenium点击buchen按钮
     def __click_buchen_btn(self, buchung, driver):
         try:
             second_buchen_btn = driver.find_element_by_xpath(
                 '//input[@value="buchen"]')
             second_buchen_btn.click()
-            self.__log('点击了预定按钮')
+            self.__log('found available booking button')
             return True
         except Exception as e:
             print(driver.page_source)
@@ -412,17 +440,17 @@ class LernraumInfo():
             sex=urinfo['sex'], vorname=urinfo['vorname'], name=urinfo['name'], strasse=urinfo['strasse'], ort=urinfo['ort'], status=urinfo['status'])
         matnr_fill_script = "bsform.matnr.value='{matnr}';bsform.email.value='{email}';bsform.telefon.value='{telefon}';bsform.submit()".format(matnr=urinfo['matnr'], email=urinfo['email'], telefon=urinfo['telefon'])
         try:
-            # time.sleep(3)
             #等待填写表单页面加载
             form_fill_page_finished = WebDriverWait(driver, 9).until(           
         EC.presence_of_element_located((By.NAME,'sex')))
-            self.__log('注入JS')
+            self.__log('inject JS Code into web page')
             status = Select(driver.find_element_by_name('statusorig'))
             status.select_by_value(urinfo['status'])
             # js注入填写表单
             driver.execute_script(fill_form_script)
             time.sleep(6)
             driver.execute_script(matnr_fill_script)
+            
             confirm_page_finished = WebDriverWait(driver, 30).until(           
         EC.text_to_be_present_in_element((By.CLASS_NAME,'bs_text_red'),'überprüfen'))
             try:
@@ -430,7 +458,7 @@ class LernraumInfo():
                     '//input[starts-with(@name,"email_check")]')
                 email2.send_keys(urinfo['email'])
             except:
-                self.__log('无需重复输入email')
+                self.__log('email comfired')
             confirm_submit_btn = driver.find_element_by_xpath(
                 '//input[@type="submit"]')
             confirm_submit_btn.click()
@@ -441,6 +469,7 @@ class LernraumInfo():
             return False
 
     def buchen_platz_via_selenium(self, buchung):
+        self.buchung = buchung
         option = webdriver.ChromeOptions()
         option.add_argument('--headless')
         prefs = {"profile.managed_default_content_settings.images": 2}
@@ -450,37 +479,93 @@ class LernraumInfo():
         driver.set_script_timeout(90)
         i = 0
         clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
-        while i<90:
+        while True:
+            if(self.__is_time_close(buchung['time'])):
+                break
+            else:
+                time.sleep(1)
+        while i<60:
             driver.get(self.url1)
             i=i+1
             self.__log('refresh page')
-            driver.execute_script(clear_black_script)
-            first_buchen_btn = driver.find_element_by_xpath(
-                '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]')
-            # # buchen_click = driver.find_element_by_xpath(
-            # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
-            first_buchen_btn.click()
             try:
+                driver.execute_script(clear_black_script)
+                first_buchen_btn = driver.find_element_by_xpath(
+                    '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]')
+                # # buchen_click = driver.find_element_by_xpath(
+                # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
+                first_buchen_btn.click()
                 second_buchen_btn = driver.find_element_by_xpath(
                 '//input[@value="buchen"]')
                 break
-            except NoSuchElementException as e:
-                time.sleep(0.5)
+            except Exception as e:
+                time.sleep(1)
         if(self.__click_buchen_btn(buchung, driver)):
             if(self.__fill_form(buchung['info'], driver)):
                 if(self.__is_buchung_successful(driver.page_source)):
-                    self.__log(buchung['username']+'预定成功')
+                    self.__log('success')
                     return True
                 else:
-                    self.__log(buchung['username']+'预定失败')
+                    self.__log('failed')
                     print(driver.page_source)
                     driver.quit()
                     return False
             else:
-                self.__log('表单填写失败')
+                self.__log('filling form failed')
                 driver.quit()
                 return False
         else:
-            self.__log('没有找到buchen按钮，可能已没有位置')
+            self.__log('not found available button, may out of booking')
             driver.quit()
             return False
+
+    #随机预定位置
+    def random_buchen(self, buchung):
+        option = webdriver.ChromeOptions()
+        option.add_argument('--headless')
+        prefs = {"profile.managed_default_content_settings.images": 2}
+        option.add_experimental_option("prefs", prefs)
+        driver = webdriver.Chrome(chrome_options=option)
+        driver.set_page_load_timeout(300)
+        driver.set_script_timeout(90)
+        i = 0
+        while True:
+            driver.get(self.url1)
+            i=i+1
+            try:
+                first_buchen_btn = driver.find_element_by_css_selector('td.bs_sbuch > input.bs_btn_buchen')
+                break
+            except NoSuchElementException as e:
+                time.sleep(3)
+        clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
+        try:
+            driver.execute_script(clear_black_script)
+        except Exception as e:
+            self.__log('js1代码执行失败')
+            driver.quit()
+            return False
+        try:
+            first_buchen_btn = driver.find_element_by_css_selector('td.bs_sbuch > input.bs_btn_buchen')
+            # # buchen_click = driver.find_element_by_xpath(
+            # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
+            first_buchen_btn.click()
+            second_buchen_btn = driver.find_element_by_xpath(
+                '//input[@value="buchen"]')
+            second_buchen_btn.click()
+            self.__log('点击了预定按钮')
+        except Exception as e:
+            print(driver.page_source)
+            traceback.print_exc()
+            driver.quit()
+            return False
+        if(self.__fill_form(buchung['info'], driver)):
+            self.__log(buchung['username']+'预定成功')
+            print(driver.page_source)
+            driver.quit()
+            return True
+        else:
+            self.__log('表单填写失败')
+            driver.quit()
+            return False
+
+
