@@ -17,9 +17,10 @@ time:自习室开放时间，格式必须为8.00 - 16.30。   lernraum open time
     因此务必保证开放时间的准确。                                      
 其余内容可不修改.                           other values dont need to change
 '''
+
 #只修改info下的信息为自己的就可以了，不知道的可以不用管。
-buchung = {'info': {'id': 0, 'username': 'xieqifei', 'email': 'im@xieqifei.com', 'sex': 'M', 'vorname': 'Qifei', 'name': 'Xie', 'strasse': 'Hainbuchenstr.1','ort': '52074  Aachen', 'status': 'S-RWTH', 'matnr': '404093', 'telefon': '00447422510915'}, 
-                    'id': 0, 'username': 'xieqifei', 'ort': 'Semi90', 'kursnr': '08511007'}
+buchung = {'info': {'id': 0, 'username': 'suiyi', 'email': 'example@email.com', 'sex': 'M', 'vorname': 'Feieie', 'name': 'Xu', 'strasse': 'Ponttorstr.1','ort': '52074  Aachen', 'status': 'S-RWTH', 'matnr': '404093', 'telefon': '00491799860915'}, 
+            'id': 0, 'username': 'suiyi', 'ort': 'suiyi', 'kursnr': '08511007'}
 
 # 要约哪个自习室和时间，就将哪行的switch改为1.
 # switch=1，预定。0不预定。
