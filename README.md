@@ -1,6 +1,6 @@
 # RWTH自习室自动化程序
 
-[中文](https://github.com/xieqifei/AutoLernraum)|[Deutsch](https://github.com/xieqifei/AutoLernraum/blob/main/README_DE.md)(Here finden Sie Readme auf Deutsch)
+[中文](https://github.com/xieqifei/AutoLernraum)|[Deutsch](https://github.com/xieqifei/AutoLernraum/blob/main/README_DE.md)
 
 ## 1.快速开始
 
