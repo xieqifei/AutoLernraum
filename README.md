@@ -1,4 +1,4 @@
-# RWTH自习室自动化程序2
+# RWTH自习室自动化程序
 
 [中文](https://github.com/xieqifei/AutoLernraum)|[Deutsch](https://github.com/xieqifei/AutoLernraum/blob/main/README_DE.md)(Here finden Sie Readme auf Deutsch)
 
@@ -14,7 +14,7 @@ buchung = {'info': {'id': 0, 'username': 'suiyi', 'email': 'example@email.com', 
 'id': 0, 'username': 'suiyi', 'ort': 'suiyi', 'kursnr': '08511007'}
 ```
 
-5. 选择要预定的位置，分了图一和图二，以及上午和下午。要抢哪个，哪个就把哪行switch改为1，可以选择多个。这些信息在学校预定网页都可以找到，如果没有你要的自习室，自行添加一行就可以了。区分自习室的只是kursnr。
+5. 选择要预定的位置，分了图一和图二，以及上午和下午。要抢哪个，就把哪行switch改为1，可以选择多个。自习室信息在学校预定网页都可以找到，如果没有你要的自习室，自行添加一行就可以了。区分自习室的只是kursnr。
 
 ```python
 lernraumList = [
