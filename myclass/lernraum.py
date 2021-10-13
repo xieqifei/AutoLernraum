@@ -80,7 +80,12 @@ class LernraumInfo():
             self.__log('booking failed, ausgebucht.')
             return True
         else:
+            self.__log('noch nicht ausgebucht')
             return False
+    
+    def get_raum_list_temp(self):
+        return self.__get_raum_list()
+        
     # 爬取所有的自习室信息
     def __get_raum_list(self):
         rep = requests.get(self.url1)
@@ -218,18 +223,9 @@ class LernraumInfo():
             'Connection': 'keep-alive',
             'Content-Length': self.__get_content_length(data),
             'Content-Type': 'application/x-www-form-urlencoded',
-            'DNT': '1',
             'Host': 'buchung.hsz.rwth-aachen.de',
             'Origin': 'https://buchung.hsz.rwth-aachen.de',
-            'Pragma': 'no-cache',
             'Referer': self.url1,
-            'sec-ch-ua': '" Not;A Brand";v="99", "Google Chrome";v="91", "Chromium";v="91"',
-            'sec-ch-ua-mobile': '?0',
-            'Sec-Fetch-Dest': 'document',
-            'Sec-Fetch-Mode': 'navigate',
-            'Sec-Fetch-Site': 'same-origin',
-            'Sec-Fetch-User': '?1',
-            'Upgrade-Insecure-Requests': '1',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.77 Safari/537.36',
         }
         resp = requests.request("POST", self.url2, headers=headers, data=data,timeout=300)
@@ -238,6 +234,7 @@ class LernraumInfo():
             if(soup.select_one('#bs_form_main input[value=buchen]')):
                 pass
             else:
+                self.__log('ausgebucht')
                 return False
             self.__log('found buchen btn')
             fid = soup.select_one(
@@ -245,7 +242,6 @@ class LernraumInfo():
             self.__log("get fid:"+fid)
             return fid
         except Exception as e:
-            self.__is_ausgebucht(resp.text)
             return False
 
     # 获取表单
@@ -391,6 +387,7 @@ class LernraumInfo():
                 self.__log("用户'"+buchung['username']+"'的信息不完整")
                 return False
         code_id_dic = self.__get_kurs_code_and_id(buchung['kursnr'])
+        self.__log(str(code_id_dic))
         if(code_id_dic):
             i=0
             while i<90:
@@ -398,7 +395,7 @@ class LernraumInfo():
                 if(fid):
                     break
                 else:
-                    self.__log('refresh page')
+                    self.__log('requests refresh page')
                     time.sleep(2)
         else:
             self.__log('获取预定主页信息失败')
@@ -525,47 +522,41 @@ class LernraumInfo():
         option.add_argument('--headless')
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
-        driver = webdriver.Chrome(chrome_options=option)
+        driver = webdriver.Chrome(chrome_options=option,executable_path=ChromeDriverManager().install())
         driver.set_page_load_timeout(300)
         driver.set_script_timeout(90)
-        i = 0
+        clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
         while True:
             driver.get(self.url1)
-            i=i+1
+            self.__log('refresh page')
             try:
-                first_buchen_btn = driver.find_element_by_css_selector('td.bs_sbuch > input.bs_btn_buchen')
-                break
-            except NoSuchElementException as e:
-                time.sleep(3)
-        clear_black_script = "document.querySelector('#bs_content > form').setAttribute('target','_self')"
-        try:
-            driver.execute_script(clear_black_script)
-        except Exception as e:
-            self.__log('js1代码执行失败')
-            driver.quit()
-            return False
-        try:
-            first_buchen_btn = driver.find_element_by_css_selector('td.bs_sbuch > input.bs_btn_buchen')
-            # # buchen_click = driver.find_element_by_xpath(
-            # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
-            first_buchen_btn.click()
-            second_buchen_btn = driver.find_element_by_xpath(
+                driver.execute_script(clear_black_script)
+                first_buchen_btn = driver.find_element_by_xpath(
+                    '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]')
+                # # buchen_click = driver.find_element_by_xpath(
+                # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
+                first_buchen_btn.click()
+                second_buchen_btn = driver.find_element_by_xpath(
                 '//input[@value="buchen"]')
-            second_buchen_btn.click()
-            self.__log('点击了预定按钮')
-        except Exception as e:
-            print(driver.page_source)
-            traceback.print_exc()
-            driver.quit()
-            return False
-        if(self.__fill_form(buchung['info'], driver)):
-            self.__log(buchung['username']+'预定成功')
-            print(driver.page_source)
-            driver.quit()
-            return True
+                break
+            except Exception as e:
+                time.sleep(20)
+        if(self.__click_buchen_btn(buchung, driver)):
+            if(self.__fill_form(buchung['info'], driver)):
+                if(self.__is_buchung_successful(driver.page_source)):
+                    self.__log('success')
+                    return True
+                else:
+                    self.__log('failed')
+                    print(driver.page_source)
+                    driver.quit()
+                    return False
+            else:
+                self.__log('filling form failed')
+                driver.quit()
+                return False
         else:
-            self.__log('表单填写失败')
+            self.__log('not found available button, may out of booking')
             driver.quit()
             return False
-
 
