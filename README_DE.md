@@ -4,7 +4,7 @@ Das Programm wird zur Buchung eines Lernraums an RWTH eingesetzt.
 
 ## Anleitung zum Gebrauch
 
-1. Installieren Python 3.x
+1. Installieren Python 3.9.x
 2. Installieren Chrome Browser von aketueller Version
 3. Herunterladen das Programm aus Github in Ihren Computer. Und dekomprimieren es
 4. Edieren die Datei `random_test.py`, und verändern die folgenden Info.email,sex,vorname,name,strasse,ort,matnr,telefon.
