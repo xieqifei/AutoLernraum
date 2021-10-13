@@ -7,10 +7,11 @@ Das Programm wird zur Buchung eines Lernraums an RWTH eingesetzt.
 1. Installieren Python 3.x
 2. Installieren Chrome Browser von aketueller Version
 3. Herunterladen das Programm aus Github in Ihren Computer. Und dekomprimieren es
-4. Edieren die Datei `test_selenium.py`, und verändern die folgenden Info.
+4. Edieren die Datei `random_test.py`, und verändern die folgenden Info.email,sex,vorname,name,strasse,ort,matnr,telefon.
 
 ```python
-buchung = {'time': '08.00 - 16.30', 'kursnr': '08411027','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Nunil', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
+buchung = {'info': {'id': 0, 'username': 'suiyi', 'email': 'example@email.com', 'sex': 'M', 'vorname': 'Feieie', 'name': 'Xu', 'strasse': 'Ponttorstr.1','ort': '52074  Aachen', 'status': 'S-RWTH', 'matnr': '404093', 'telefon': '00491799860915'}, 
+'id': 0, 'username': 'suiyi', 'ort': 'suiyi', 'kursnr': '08511007'}
 ```
 
 > kursnr:Lernraum Nummer, welches Sie buchen möchten. Beispiel: 08411027 für Semi90.  Die Nummer finden Sie einfache in folgender Site. https://buchung.hsz.rwth-aachen.de/angebote/aktueller_zeitraum/_Lernraumbuchung.html
@@ -35,8 +36,19 @@ buchung = {'time': '08.00 - 16.30', 'kursnr': '08411027','info':{ 'username': ''
 >
 > Status, Ort von Lernraum und username bleiben Sie bitte wie vor. 
 
-5. Speichern die Veränderung und führen `test_selenium.py` aus.  Zum Beispiel, ich will einen Lernraum in Bib 1 buchen, welcher um 8 Uhr öffnet, dann kann ich vor 7:59 das Programm ausführen.
+5. switch = 1=>buchen. switch = 0 =>nicht buchen.
 
-## Zum Schluss
+```python
+lernraumList = [
+    {'switch': 1, 'ort': 'Bib1', 'kursnr': "08511007", 'time': '08:00-14:00'},
+    {'switch': 0, 'ort': 'Bib2', 'kursnr': "08611004", 'time': '08:00-14:00'},
 
-Wenn Sie an dem Programm interessieren, können Sie die Datei `/myclass/lernraum.py` lesen, wo  die kritische Code steht.  Das Programm wird irregulär erneuert werden. Falls es funktioniert nicht mehr, dann herunterladen das Neue.
+    {'switch': 0, 'ort': 'Bib1', 'kursnr': "08511008", 'time': '14:00-20:00'},
+    {'switch': 0, 'ort': 'Bib2', 'kursnr': "08611005", 'time': '14:00-20:00'}
+]
+```
+
+5. Speichern die Veränderung und führen `random_test.py` aus.  
+
+Test Enviroment: Windows
+
