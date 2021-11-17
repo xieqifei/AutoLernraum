@@ -2,7 +2,7 @@
 
 [中文](https://github.com/xieqifei/AutoLernraum)|[Deutsch](https://github.com/xieqifei/AutoLernraum/blob/main/README_DE.md)
 
-![image-20211117181722588](https://i.loli.net/2021/11/18/d7QPcFp2sIgSXTt.png)
+![image-20211117182444929](https://i.loli.net/2021/11/18/FoOYsD5hGQMcrIA.png)
 
 ## 1.快速开始
 
