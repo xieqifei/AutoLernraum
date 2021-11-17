@@ -46,7 +46,7 @@ class LernraumInfo():
             buchungTimeMinute = int(timestr.split('-')[0].split('.')[1])
             diffirenzBuchtimeToNull = buchungTimeHour*3600+buchungTimeMinute*60
             utcTime = datetime.datetime.now(datetime.timezone.utc)
-            berlinTime = utcTime + datetime.timedelta(hours=2)
+            berlinTime = utcTime + datetime.timedelta(hours=1)
             berlinTimeHour = berlinTime.hour
             berlinTimeMinute = berlinTime.minute
             berlinTimeSecond = berlinTime.second

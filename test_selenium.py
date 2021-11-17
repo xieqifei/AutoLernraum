@@ -27,7 +27,9 @@ time:自习室开放时间，格式必须为8.00 - 16.30。    lernraum open tim
     在此之前程序会进入倒计时。
     因此务必保证开放时间的准确。                                      
 其余内容可不修改.                               other values dont need to change
+请在自习室开放时间之前运行
 '''
+#buchung = {'time': '08.00 - 16.30', 'kursnr': '08611004','detail':'Bib2_Morgen','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
+buchung = {'time': '14.00 - 22.00', 'kursnr': '08611005','detail':'Bib2_Nachmittag','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
 
-buchung = {'time': '08.00 - 16.30', 'kursnr': '08411027','info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
 LernraumInfo().buchen_platz_via_selenium(buchung)

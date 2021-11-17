@@ -2,12 +2,14 @@
 
 [中文](https://github.com/xieqifei/AutoLernraum)|[Deutsch](https://github.com/xieqifei/AutoLernraum/blob/main/README_DE.md)
 
+![image-20211117181722588](https://i.loli.net/2021/11/18/d7QPcFp2sIgSXTt.png)
+
 ## 1.快速开始
 
 1. 安装Chrome浏览器
 2. 安装python3.9及以上版本
 3. 点击绿色的Code按钮，下载zip包，并解压
-4. 使用编辑器打开文件目录下的random_test.py，修改email、sex、vorname、name、strasse、ort、matnr、telefon。注意格式保持一直。格式错误抢座会失败。
+4. 使用编辑器打开文件目录下的random_test.py，修改email、sex、vorname、name、strasse、ort、matnr、telefon。注意格式保持一致。格式错误抢座会失败。
 
 ```python
 buchung = {'info': {'id': 0, 'username': 'suiyi', 'email': 'example@email.com', 'sex': 'M', 'vorname': 'Feieie', 'name': 'Xu', 'strasse': 'Ponttorstr.1','ort': '52074  Aachen', 'status': 'S-RWTH', 'matnr': '404093', 'telefon': '00491799860915'}, 
@@ -28,7 +30,24 @@ lernraumList = [
 
 6. 使用pyhton运行random_test.py。
 
-## 2.简单说明
+7. 程序每20秒刷新一次，只要有位置就预定，不会自动停止，直到把所有要抢的自习室都预定到了位置为止。。主要用处还是挂机捡漏。。不会后台运行，需要保持电脑不待机。测试环境，仅windows。
 
-每20秒刷新一次，只要有位置就预定，不会自动停止，直到把所有要抢的自习室都预定到了位置为止。。自行谷歌搜索如何设置定时运行程序抢座。主要用处还是挂机捡漏。。不会后台运行，需要保持电脑不待机。测试环境，仅windows。
+8. 出现refresh page时，表示程序正常运行。
+
+   ![image-20211117180309698](https://i.loli.net/2021/11/18/Xkz2CUGAlWbupqw.png)
+
+## 2.定时抢座
+
+1. 打开test_selenium.py
+2. 修改buchung变量，其中info对应的个人信息只用修改一次。time和kursnr对应的抢座时间和自习室编号需每次抢座前修改。`'time': '14.00 - 22.00', 'kursnr': '08611005'`表示下午两点开始进入网页，预定图二下午的座，08611005唯一对应了图二下午的位置。在文件中我预置了图二上午和下午的buchung变量，可以通过#将不抢的buchung注释掉。两个的info都记得修改下。
+3. 运行test_selenium.py
+4. 抢座程序只能在开始抢座之前20分钟内运行，比如上午8点的座，最早的运行时间是7:40，那么之后程序会开始倒计时，8点准时进入网页抢座。你可以将time先设置为离你较近的一个时间进行测试，来了解程序运行的原理。
+5. 出现倒计时时程序正常运行
+
+![image-20211117180736738](https://i.loli.net/2021/11/18/BbOo1FpGwiJjrWS.png)
+
+## 3.注意事项
+
+1. 长时间运行random_test.py程序可导致你的家庭网络IP被buchung网站封禁，重新启动你的路由器可恢复访问。建议使用vpn或者在校园网运行。
+2. 由于预定网页经常发生变化，如果正常运行一段时间后报错，可以到github上重新下载最新的版本。如果我更新不及时，可以提交issue。
 

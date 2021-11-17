@@ -1,6 +1,8 @@
 # AutoLernraum
 
-Das Programm wird zur Buchung eines Lernraums an RWTH eingesetzt. 
+Das Programm wird zur Buchung eines Lernraums an RWTH eingesetzt.
+
+ ![image-20211117181722588](https://i.loli.net/2021/11/18/d7QPcFp2sIgSXTt.png)
 
 ## Anleitung zum Gebrauch
 
