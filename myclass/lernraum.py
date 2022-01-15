@@ -42,8 +42,8 @@ class LernraumInfo():
     #验证预定时间和当前时间是否接近
     def __is_time_close(self,timestr):
         try:
-            buchungTimeHour = int(timestr.split('-')[0].split('.')[0])
-            buchungTimeMinute = int(timestr.split('-')[0].split('.')[1])
+            buchungTimeHour = int(timestr.split('-')[1].split('.')[0])
+            buchungTimeMinute = int(timestr.split('-')[1].split('.')[1])
             diffirenzBuchtimeToNull = buchungTimeHour*3600+buchungTimeMinute*60
             utcTime = datetime.datetime.now(datetime.timezone.utc)
             berlinTime = utcTime + datetime.timedelta(hours=1)
