@@ -27,5 +27,5 @@ time:自习室开放时间，格式必须为8.00 - 16.30。   lernraum open time
 其余内容可不修改.                           other values dont need to change
 '''
 
-buchung = {'time': '08.00 - 16.30', 'kursnr': '08611004','info':{ 'username': 'qifei', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
+buchung = {'time': '08.00 - 16.30', 'kursnr': '08611004','info':{ 'username': 'bausi', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
 LernraumInfo().buchen_platz_via_requests(buchung)
