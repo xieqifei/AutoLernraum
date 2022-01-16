@@ -469,6 +469,7 @@ class LernraumInfo():
             traceback.print_exc()
             return False
 
+  
     def buchen_platz_via_selenium(self, buchung):
         self.buchung = buchung
         option = webdriver.ChromeOptions()
@@ -490,7 +491,15 @@ class LernraumInfo():
             i=i+1
             self.__log('refresh page')
             try:
-                driver.execute_script(clear_black_script)
+                #activate the button if buchung has button id
+                if(buchung['button']):
+                    button_add_script = 'var self = document.querySelector("#K%s+span");var parent = self.parentElement;var removed = parent.removeChild(self);var div = document.createElement("div");div.innerHTML=\'<input type="submit" value="Warteliste" name="%s" class="bs_btn_warteliste">\';parent.appendChild(div.firstChild);' % (buchung['kursnr'],buchung['button'])
+                    driver.execute_script(button_add_script)
+            except :
+                pass
+
+            try:
+                driver.execute_script(clear_black_script)                
                 first_buchen_btn = driver.find_element_by_xpath(
                     '//td[contains(text(), "'+buchung['kursnr']+'")]/following-sibling::td[@class="bs_sbuch"]')
                 # # buchen_click = driver.find_element_by_xpath(
@@ -501,6 +510,7 @@ class LernraumInfo():
                 break
             except Exception as e:
                 time.sleep(1)
+                
         if(self.__click_buchen_btn(buchung, driver)):
             if(self.__fill_form(buchung['info'], driver)):
                 if(self.__is_buchung_successful(driver.page_source)):

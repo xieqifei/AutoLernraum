@@ -30,11 +30,12 @@ time:自习室开放时间，格式必须为8.00 - 16.30。    lernraum open tim
 
 # 在需要预定的自习室前，将switch设置为1，其余设置为0。当且仅有一个1。
 lernraum = [
-    {'switch':0,'ort':'Bib1','time':'08.00 - 14.00','kursnr':'08511007'},
-    {'switch':0,'ort':'Bib1','time':'14.00 - 22.00','kursnr':'08511008'},
-    {'switch':1,'ort':'Bib2','time':'08.00 - 14.00','kursnr':'08611004'},
-    {'switch':0,'ort':'Bib2','time':'14.00 - 22.00','kursnr':'08611005'},
+    {'switch':1,'ort':'Bib1','time':'08.00 - 14.00','kursnr':'08511007',"button":"BS_Kursid_181911"},
+    {'switch':0,'ort':'Bib1','time':'14.00 - 22.00','kursnr':'08511008',"button":"BS_Kursid_181912"},
+    {'switch':0,'ort':'Bib2','time':'08.00 - 14.00','kursnr':'08611004',"button":"BS_Kursid_181913"},
+    {'switch':0,'ort':'Bib2','time':'14.00 - 22.00','kursnr':'08611005',"button":"BS_Kursid_181914"},
 ]
+
 
 buchung = {'info':{ 'username': '', 'email': 'example@gmail.com', 'sex': 'M', 'vorname': 'Ivan', 'name': 'Natanael', 'strasse': 'Pontstr.23', 'ort': '52076  Aachen', 'status': 'S-RWTH', 'matnr': '468389', 'telefon': '00491748068847'}}
 
