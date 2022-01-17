@@ -433,12 +433,12 @@ class LernraumInfo():
 
     # selenium填写表单
     def __fill_form(self, urinfo, driver):
-         #without farbe validation
-        # fill_form_script = "bsform.sex.value='{sex}';bsform.vorname.value='{vorname}';bsform.name.value='{name}';bsform.strasse.value='{strasse}';bsform.ort.value='{ort}';bsform.statusorig.value='{status}';bsform.tnbed.checked=true;".format(
-        #     sex=urinfo['sex'], vorname=urinfo['vorname'], name=urinfo['name'], strasse=urinfo['strasse'], ort=urinfo['ort'], status=urinfo['status'])
-        #with farbe validation
-        fill_form_script = "bsform.sex.value='{sex}';bsform.vorname.value='{vorname}';bsform.name.value='{name}';bsform.strasse.value='{strasse}';bsform.ort.value='{ort}';bsform.statusorig.value='{status}';bsform.bemerkung.value='Schwarz';bsform.tnbed.checked=true;".format(
+         #without color validation
+        fill_form_script = "bsform.sex.value='{sex}';bsform.vorname.value='{vorname}';bsform.name.value='{name}';bsform.strasse.value='{strasse}';bsform.ort.value='{ort}';bsform.statusorig.value='{status}';bsform.tnbed.checked=true;".format(
             sex=urinfo['sex'], vorname=urinfo['vorname'], name=urinfo['name'], strasse=urinfo['strasse'], ort=urinfo['ort'], status=urinfo['status'])
+        #with color validation
+        fill_form_script_with_color = "bsform.sex.value='{sex}';bsform.vorname.value='{vorname}';bsform.name.value='{name}';bsform.strasse.value='{strasse}';bsform.ort.value='{ort}';bsform.statusorig.value='{status}';bsform.bemerkung.value='Schwarz';bsform.tnbed.checked=true;".format(
+           sex=urinfo['sex'], vorname=urinfo['vorname'], name=urinfo['name'], strasse=urinfo['strasse'], ort=urinfo['ort'], status=urinfo['status'])
         matnr_fill_script = "bsform.matnr.value='{matnr}';bsform.email.value='{email}';bsform.telefon.value='{telefon}';bsform.submit()".format(matnr=urinfo['matnr'], email=urinfo['email'], telefon=urinfo['telefon'])
         try:
             #等待填写表单页面加载
@@ -448,7 +448,10 @@ class LernraumInfo():
             status = Select(driver.find_element_by_name('statusorig'))
             status.select_by_value(urinfo['status'])
             # js注入填写表单
-            driver.execute_script(fill_form_script)
+            try:
+                driver.execute_script(fill_form_script)
+            except:
+                driver.execute_script(fill_form_script_with_color)
             time.sleep(6)
             driver.execute_script(matnr_fill_script)
             
