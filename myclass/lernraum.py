@@ -422,7 +422,7 @@ class LernraumInfo():
     def __click_buchen_btn(self, buchung, driver):
         try:
             second_buchen_btn = driver.find_element_by_xpath(
-                '//input[@value="buchen"]')
+                '//input[contains(@class,"inlbutton buchen")]')
             second_buchen_btn.click()
             self.__log('found available booking button')
             return True
@@ -476,7 +476,7 @@ class LernraumInfo():
     def buchen_platz_via_selenium(self, buchung):
         self.buchung = buchung
         option = webdriver.ChromeOptions()
-        option.add_argument('--headless')
+        # option.add_argument('--headless')
         prefs = {"profile.managed_default_content_settings.images": 2}
         option.add_experimental_option("prefs", prefs)
         driver = webdriver.Chrome(chrome_options=option,executable_path=ChromeDriverManager().install())
@@ -499,6 +499,7 @@ class LernraumInfo():
                     button_add_script = 'var self = document.querySelector("#K%s+span");var parent = self.parentElement;var removed = parent.removeChild(self);var div = document.createElement("div");div.innerHTML=\'<input type="submit" value="Warteliste" name="%s" class="bs_btn_warteliste">\';parent.appendChild(div.firstChild);' % (buchung['kursnr'],buchung['button'])
                     driver.execute_script(button_add_script)
             except :
+                self.__log('button ready')
                 pass
 
             try:
@@ -509,7 +510,7 @@ class LernraumInfo():
                 # #     '//td[contains(text(), "08411029")]/following-sibling::td[@class="bs_sbuch"]')
                 first_buchen_btn.click()
                 second_buchen_btn = driver.find_element_by_xpath(
-                '//input[@value="buchen"]')
+                '//input[contains(@class,"inlbutton buchen")]')
                 break
             except Exception as e:
                 time.sleep(1)
@@ -522,15 +523,15 @@ class LernraumInfo():
                 else:
                     self.__log('failed')
                     print(driver.page_source)
-                    driver.quit()
+                    # driver.quit()
                     return False
             else:
                 self.__log('filling form failed')
-                driver.quit()
+                # driver.quit()
                 return False
         else:
             self.__log('not found available button, may out of booking')
-            driver.quit()
+            # driver.quit()
             return False
 
     #随机预定位置
