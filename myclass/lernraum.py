@@ -463,9 +463,9 @@ class LernraumInfo():
                 email2.send_keys(urinfo['email'])
             except:
                 self.__log('email comfired')
-            confirm_submit_btn = driver.find_element_by_xpath(
-                '//input[@type="submit"]')
-            confirm_submit_btn.click()
+            # confirm_submit_btn = driver.find_element_by_xpath(
+            #     '//input[@type="submit"]')
+            # confirm_submit_btn.click()
             return True
         except Exception as e:
             print(driver.page_source)
@@ -477,8 +477,8 @@ class LernraumInfo():
         self.buchung = buchung
         option = webdriver.ChromeOptions()
         # option.add_argument('--headless')
-        prefs = {"profile.managed_default_content_settings.images": 2}
-        option.add_experimental_option("prefs", prefs)
+        # prefs = {"profile.managed_default_content_settings.images": 2}
+        # option.add_experimental_option("prefs", prefs)
         driver = webdriver.Chrome(chrome_options=option,executable_path=ChromeDriverManager().install())
         driver.set_page_load_timeout(300)
         driver.set_script_timeout(90)
